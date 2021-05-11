@@ -1,4 +1,5 @@
 # It Finances Api
+A wrapper for It Finances Api
 
 ## Official api documentation
 https://api-test.itfinance.it/IT4FRest/rest/swagger-ui.html
@@ -24,6 +25,11 @@ This wrapper is made only for those who have access to the api.
 You have to directly contact It Finance to gain access to the endpoints.
 
 The calls to this api are not free, the cost is defined with a contract with itFinance
+
+## Collab
+This wrappper is maintained by Telnet Servizi srl
+By the software division Telnet Data https://www.telnetdata.it/
+
 
 ## Contact 
 http://www.itfinance.it
