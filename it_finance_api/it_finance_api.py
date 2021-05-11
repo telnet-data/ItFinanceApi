@@ -1,7 +1,13 @@
 import requests
 from requests.auth import HTTPBasicAuth
+from datetime import datetime, timedelta
 from it_finance_api.response import ItFinanceResponse
+from it_finance_api.exceptions import InvalidLicenseError
 from it_finance_api.endpoints import *
+from it_finance_api.models.account import (
+    AccountData,
+    CapabilitiesType,
+)
 from it_finance_api.models.credit_score import (
     CreditScoreDetailData,
     CreditScoreOverviewData,
@@ -14,21 +20,56 @@ class ItFinanceApi:
             self,
             base_uri='https://api-test.itfinance.it/IT4FRest/rest/',
             return_raw=False,
-            raise_exception=True,
     ):
         """
         :param base_uri: the url of the api
         :param return_raw: return the data as json do not wrap into class
-        :param raise_exception: return data without error handling
         """
         self.fiscal_code_user = None
         self.base_uri = base_uri
         self.return_raw = return_raw
-        self.raise_exception = raise_exception
-        self.auth = ''
+        self.__auth = ''
+
+        self._account_partner_data = None
 
     def login(self, username, password):
-        self.auth = HTTPBasicAuth(username, password)
+        self.__auth = HTTPBasicAuth(username, password)
+
+        self._account_partner_data = self.get_account_partner()
+
+    def _evaluate_license(self, capabilities):
+        """
+        Check if the endpoint can be called based on the user licenses
+        :param capabilities: list of capabilities
+        :return: none
+        :raise: InvalidLicenseError: if the endpoint cant be called
+        """
+        self._account_partner_data: AccountData
+        if datetime.now() - self._account_partner_data.last_call_update > timedelta(hours=5):
+            # update the partner data
+            self._account_partner_data = self.get_account_partner()
+
+        if not self._account_partner_data.has_capabilities(capabilities):
+            diff = list(set(capabilities) - set(self._account_partner_data.capabilities_list))
+            raise InvalidLicenseError(diff)
+
+    def force_update_account_partner(self):
+        self._account_partner_data = self.get_account_partner()
+
+    def get_account_partner(self):
+        """
+        :return: user's partner
+        """
+        res = requests.get(
+            self.base_uri+ACCOUNT_PARTNER,
+            auth=self.__auth
+        )
+
+        if self.return_raw:
+            return res.content
+
+        data = ItFinanceResponse(res)()
+        return AccountData(data)
 
     def get_score_companies_detail(self, fiscal_code_user, fiscal_id, search_type='fiscalCode'):
         """
@@ -39,11 +80,15 @@ class ItFinanceApi:
                 - vatNumber
         :return:
         """
+        self._evaluate_license([
+            CapabilitiesType.CREDIT_SCORE,
+        ])
+
         uri_params = f'?fiscalCodeUser={fiscal_code_user}&fiscalId={fiscal_id}&searchType={search_type}'
 
         res = requests.get(
             self.base_uri+SCORE_COMPANIES_DETAIL+uri_params,
-            auth=self.auth
+            auth=self.__auth
         )
 
         if self.return_raw:
@@ -65,7 +110,7 @@ class ItFinanceApi:
 
         res = requests.get(
             self.base_uri+SCORE_COMPANIES_DETAIL+uri_params,
-            auth=self.auth
+            auth=self.__auth
         )
 
         if self.return_raw:

@@ -18,6 +18,15 @@ class NetworkError(Exception):
     pass
 
 
+class InvalidLicenseError(Exception):
+
+    def __init__(self, capabilities):
+        self.capabilities = capabilities
+
+    def __str__(self):
+        return f'You are missing some capabilities to perform this action: {self.capabilities}'
+
+
 class UnauthorizedError(DefaultException):
     pass
 
