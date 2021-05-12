@@ -24,7 +24,8 @@ class ItFinanceResponse:
         data = json.loads(content)
 
         if self.response.ok:
-            return data.get('result', {})
+            # returns status and data
+            return data
 
         elif self.response.status_code == 400:
             raise InvalidParametersError(data)

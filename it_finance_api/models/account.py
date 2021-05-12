@@ -1,9 +1,16 @@
 from enum import Enum
 from typing import List
 from datetime import datetime
+from it_finance_api.models.base import (
+    BaseData,
+    WrapperDataInterface,
+)
 
 
 class CapabilitiesType(Enum):
+    """
+    Licenses keywords
+    """
     CREDIT_SCORE = 'CREDIT_SCORE'
     CREDIT_SCORE_SUBSCRIPTION = 'CREDIT_SCORE_SUBSCRIPTION'
     CREDIT_SCORE_REPORT = 'CREDIT_SCORE_REPORT'
@@ -15,7 +22,9 @@ class CapabilitiesType(Enum):
 
 
 class CapabilitiesData:
-
+    """
+    Wrapped list of licences
+    """
     def __init__(self, data):
         self.context: str = data.get('context', '')
         self.id: int = data.get('id', 0)
@@ -25,26 +34,30 @@ class CapabilitiesData:
         return f'{self.context}-{self.id}-{self.name}'
 
 
-class AccountData:
+class AccountData(BaseData, WrapperDataInterface):
+    """
+    Logged user account
+    """
+    def __init__(self, data: dict, result):
+        super(AccountData, self).__init__(data)
 
-    def __init__(self, data):
-        self.capabilities: List[CapabilitiesData] = [CapabilitiesData(el) for el in data.get('capabilities', {})]
-        self.creationDate: str = data.get('creationDate', '')
-        self.id: int = data.get('id', 0)
-        self.id_user: int = data.get('userId', 0)
-        self.name: str = data.get('name', '')
-        self.state: str = data.get('state', '')
-        self.update_date: str = data.get('updateDate', '')
+        self.capabilities: List[CapabilitiesData] = [CapabilitiesData(el) for el in result.get('capabilities', {})]
+        self.creationDate: str = result.get('creationDate', '')
+        self.id: int = result.get('id', 0)
+        self.id_user: int = result.get('userId', 0)
+        self.name: str = result.get('name', '')
+        self.state: str = result.get('state', '')
+        self.update_date: str = result.get('updateDate', '')
 
         # automatically updated on obj creation
         self.last_call_update: datetime = datetime.now()
 
+    def __repr__(self):
+        return self.name
+
     @property
     def capabilities_list(self):
         return [el.name for el in self.capabilities]
-
-    def __repr__(self):
-        return self.name
 
     def has_capabilities(self, capabilities):
         """

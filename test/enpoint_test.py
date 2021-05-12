@@ -8,7 +8,7 @@ with open('credentials.json', 'rb') as f:
 
 
 def main():
-    api = ItFinanceApi()
+    api = ItFinanceApi(fiscal_code_user='02463640306')
     api.login(USERNAME, PASSWORD)
 
     # ACCOUNT PARTNER
@@ -19,7 +19,7 @@ def main():
         print(exc)
 
     try:
-        res = api.get_score_companies_detail('02463640306', '02162000745')
+        res = api.get_score_companies_detail('02162000745')
         print(res)
     except Exception as exc:
         print(exc)

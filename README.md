@@ -8,6 +8,7 @@ https://api-test.itfinance.it/IT4FRest/rest/swagger-ui.html
 ``` python
     import json
     from it_finance_api import ItFinanceApi
+    from it_finance_api.models import CreditScoreDetailData
     
     with open('credentials.json', 'rb') as f:
         c = json.load(f)
@@ -17,7 +18,7 @@ https://api-test.itfinance.it/IT4FRest/rest/swagger-ui.html
     api = ItFinanceApi()
     api.login(USERNAME, PASSWORD)
     
-    res:  = api.get_score_companies_detail('0246364', '02162745')
+    res: CreditScoreDetailData  = api.get_score_companies_detail('02162745')
 ```
 
 ## Disclaimer

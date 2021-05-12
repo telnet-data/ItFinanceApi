@@ -39,7 +39,7 @@ setup(
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
     ],
 
-    python_requires='>=3.7',
+    python_requires='>=3.6',
     install_requires=[
         'requests'
     ],

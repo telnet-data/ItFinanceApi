@@ -4,6 +4,10 @@ from datetime import datetime, timedelta
 from it_finance_api.response import ItFinanceResponse
 from it_finance_api.exceptions import InvalidLicenseError
 from it_finance_api.endpoints import *
+from it_finance_api.models.base import (
+    BaseData,
+    WrapperDataInterface,
+)
 from it_finance_api.models.account import (
     AccountData,
     CapabilitiesType,
@@ -19,15 +23,16 @@ class ItFinanceApi:
     def __init__(
             self,
             base_uri='https://api-test.itfinance.it/IT4FRest/rest/',
-            return_raw=False,
+            raise_exception=True,
+            fiscal_code_user=None,
     ):
         """
         :param base_uri: the url of the api
-        :param return_raw: return the data as json do not wrap into class
+        :param raise_exception: raise exception or ignore exception and return empty obj
         """
-        self.fiscal_code_user = None
+        self.fiscal_code_user = fiscal_code_user
         self.base_uri = base_uri
-        self.return_raw = return_raw
+        self.raise_exception = raise_exception
         self.__auth = ''
 
         self._account_partner_data = None
@@ -36,6 +41,24 @@ class ItFinanceApi:
         self.__auth = HTTPBasicAuth(username, password)
 
         self._account_partner_data = self.get_account_partner()
+
+    def _get(self, uri, wrapper_obj):
+        """
+        Base get request with data wrapper
+        :param uri: the full url of the endpoint
+        :param wrapper_obj: the wrapper obj that will load the data
+        :return:
+        """
+        if not issubclass(wrapper_obj, WrapperDataInterface):
+            raise Exception('Programming error, wrong interface')
+
+        res = requests.get(
+            self.base_uri+uri,
+            auth=self.__auth
+        )
+
+        data = ItFinanceResponse(res)()
+        return wrapper_obj(data, data.get('result', {}))
 
     def _evaluate_license(self, capabilities):
         """
@@ -53,28 +76,27 @@ class ItFinanceApi:
             diff = list(set(capabilities) - set(self._account_partner_data.capabilities_list))
             raise InvalidLicenseError(diff)
 
-    def force_update_account_partner(self):
+    def force_update_account_partner(self) -> None:
         self._account_partner_data = self.get_account_partner()
 
-    def get_account_partner(self):
+    def get_account_partner(self) -> AccountData:
         """
         :return: user's partner
         """
-        res = requests.get(
-            self.base_uri+ACCOUNT_PARTNER,
-            auth=self.__auth
+        return self._get(
+            ACCOUNT_PARTNER,
+            AccountData
         )
 
-        if self.return_raw:
-            return res.content
-
-        data = ItFinanceResponse(res)()
-        return AccountData(data)
-
-    def get_score_companies_detail(self, fiscal_code_user, fiscal_id, search_type='fiscalCode'):
+    def get_score_companies_detail(
+            self,
+            fiscal_id,
+            fiscal_code_user=None,
+            search_type='fiscalCode'
+    ) -> CreditScoreDetailData:
         """
-        :param fiscal_code_user: The fiscal code of the user sending the request (company)
         :param fiscal_id: The Fiscal ID of the company, can be a VAT CODE or a FISCAL CODE depending on the search type
+        :param fiscal_code_user: The fiscal code of the user sending the request (company)
         :param search_type: The kind of search between:
                 - fiscalCode
                 - vatNumber
@@ -84,37 +106,38 @@ class ItFinanceApi:
             CapabilitiesType.CREDIT_SCORE,
         ])
 
-        uri_params = f'?fiscalCodeUser={fiscal_code_user}&fiscalId={fiscal_id}&searchType={search_type}'
+        if not fiscal_code_user and not self.fiscal_code_user:
+            raise Exception('Required fiscal_code_user. Define it globally or as kwarg')
 
-        res = requests.get(
-            self.base_uri+SCORE_COMPANIES_DETAIL+uri_params,
-            auth=self.__auth
+        uri_params = f'?fiscalCodeUser={fiscal_code_user}&fiscalId={fiscal_id}&searchType={search_type}'
+        return self._get(
+            SCORE_COMPANIES_DETAIL + uri_params,
+            CreditScoreDetailData
         )
 
-        if self.return_raw:
-            return res.content
-
-        data = ItFinanceResponse(res)()
-        return CreditScoreDetailData(data)
-
-    def get_score_companies_overview(self, fiscal_code_user, fiscal_id, search_type='fiscalCode'):
+    def get_score_companies_overview(
+            self,
+            fiscal_id,
+            fiscal_code_user=None,
+            search_type='fiscalCode'
+    ) -> CreditScoreOverviewData:
         """
-        :param fiscal_code_user: The fiscal code of the user sending the request (company)
         :param fiscal_id: The Fiscal ID of the company, can be a VAT CODE or a FISCAL CODE depending on the search type
+        :param fiscal_code_user: The fiscal code of the user sending the request (company)
         :param search_type: The kind of search between:
                 - fiscalCode
                 - vatNumber
         :return:
         """
+        self._evaluate_license([
+            CapabilitiesType.CREDIT_SCORE,
+        ])
+
+        if not fiscal_code_user and not self.fiscal_code_user:
+            raise Exception('Required fiscal_code_user. Define it globally or as kwarg')
+
         uri_params = f'?fiscalCodeUser={fiscal_code_user}&fiscalId={fiscal_id}&searchType={search_type}'
-
-        res = requests.get(
-            self.base_uri+SCORE_COMPANIES_DETAIL+uri_params,
-            auth=self.__auth
+        return self._get(
+            SCORE_COMPANIES_OVERVIEW + uri_params,
+            CreditScoreOverviewData
         )
-
-        if self.return_raw:
-            return res.content
-
-        data = ItFinanceResponse(res)()
-        return CreditScoreOverviewData(data)

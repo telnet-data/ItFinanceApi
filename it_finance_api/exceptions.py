@@ -1,14 +1,10 @@
+from it_finance_api.models.base import ResponseStatusData
 
 
-class DefaultException(Exception):
+class DefaultException(Exception, ResponseStatusData):
 
     def __init__(self, data):
-        self.code: int = data.get('code', 0)
-        self.error_list: [] = data.get('errorList', [])
-        self.is_ko: bool = data.get('isKo', False)
-        self.is_ok: bool = data.get('isOk', True)
-        self.is_warn: bool = data.get('isWarn', False)
-        self.message: bool = data.get('message', '')
+        ResponseStatusData.__init__(self, data)
 
     def __str__(self):
         return f'code: {self.code} message: {self.message}'
