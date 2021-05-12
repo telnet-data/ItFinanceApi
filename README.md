@@ -34,3 +34,6 @@ By the software division Telnet Data https://www.telnetdata.it/
 
 ## Contact 
 http://www.itfinance.it
+
+## Release notes
+Look in the Github releases section for the update info
