@@ -4,10 +4,6 @@ from datetime import datetime, timedelta
 from it_finance_api.response import ItFinanceResponse
 from it_finance_api.exceptions import InvalidLicenseError
 from it_finance_api.endpoints import *
-from it_finance_api.models.base import (
-    BaseData,
-    WrapperDataInterface,
-)
 from it_finance_api.models.account import (
     AccountData,
     CapabilitiesType,
@@ -49,9 +45,6 @@ class ItFinanceApi:
         :param wrapper_obj: the wrapper obj that will load the data
         :return:
         """
-        if not issubclass(wrapper_obj, WrapperDataInterface):
-            raise Exception('Programming error, wrong interface')
-
         res = requests.get(
             self.base_uri+uri,
             auth=self.__auth
