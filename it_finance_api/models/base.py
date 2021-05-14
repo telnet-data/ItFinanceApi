@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from datetime import datetime
 
 
 class BaseData:
@@ -6,6 +7,14 @@ class BaseData:
     def __init__(self, data):
         # the status of the response
         self.status = ResponseStatusData(data)
+
+    @staticmethod
+    def datetime_converter(datetime_string):
+        if datetime_string:
+            return datetime.strptime(
+                datetime_string,
+                '%d-%m-%Y %H:%M:%S.%f'
+            )
 
 
 class WrapperDataInterface(ABC):
@@ -40,3 +49,13 @@ class AddressData:
         self.place_name: str = data.get('placeName')
         self.province: str = data.get('province')
         self.town: str = data.get('town')
+
+
+class KeyValueData:
+
+    def __init__(self, data):
+        self.key = data.get('key', '')
+        self.value = data.get('value', '')
+
+    def __repr__(self):
+        return f'{self.key}-{self.value}'
