@@ -18,7 +18,7 @@ class ItFinanceApi:
 
     def __init__(
             self,
-            base_uri='https://api-test.itfinance.it/IT4FRest/rest/',
+            base_uri='https://api.itfinance.it/IT4FRest/rest/',
             raise_exception=True,
             fiscal_code_user=None,
     ):
