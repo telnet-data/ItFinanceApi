@@ -19,8 +19,9 @@ def main():
         print(exc)
 
     try:
-        res = api.get_score_companies_detail('02162000745')
+        res = api.get_score_companies_detail('12377440156')
         print(res)
+        print(res.sic_list)
     except Exception as exc:
         print(exc)
 

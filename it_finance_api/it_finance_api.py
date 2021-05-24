@@ -18,7 +18,7 @@ class ItFinanceApi:
 
     def __init__(
             self,
-            base_uri='https://api-test.itfinance.it/IT4FRest/rest/',
+            base_uri='https://api.itfinance.it/IT4FRest/rest/',
             raise_exception=True,
             fiscal_code_user=None,
     ):
@@ -69,6 +69,12 @@ class ItFinanceApi:
             diff = list(set(capabilities) - set(self._account_partner_data.capabilities_list))
             raise InvalidLicenseError(diff)
 
+    def _get_fiscal_code_user(self, fiscal_code_user):
+        if not fiscal_code_user and not self.fiscal_code_user:
+            raise Exception('Required fiscal_code_user. Define it globally or as kwarg')
+
+        return fiscal_code_user if fiscal_code_user else self.fiscal_code_user
+
     def force_update_account_partner(self) -> None:
         self._account_partner_data = self.get_account_partner()
 
@@ -99,8 +105,7 @@ class ItFinanceApi:
             CapabilitiesType.CREDIT_SCORE,
         ])
 
-        if not fiscal_code_user and not self.fiscal_code_user:
-            raise Exception('Required fiscal_code_user. Define it globally or as kwarg')
+        fiscal_code_user = self._get_fiscal_code_user(fiscal_code_user)
 
         uri_params = f'?fiscalCodeUser={fiscal_code_user}&fiscalId={fiscal_id}&searchType={search_type}'
         return self._get(
@@ -126,8 +131,7 @@ class ItFinanceApi:
             CapabilitiesType.CREDIT_SCORE,
         ])
 
-        if not fiscal_code_user and not self.fiscal_code_user:
-            raise Exception('Required fiscal_code_user. Define it globally or as kwarg')
+        fiscal_code_user = self._get_fiscal_code_user(fiscal_code_user)
 
         uri_params = f'?fiscalCodeUser={fiscal_code_user}&fiscalId={fiscal_id}&searchType={search_type}'
         return self._get(
